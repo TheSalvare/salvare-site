@@ -547,6 +547,49 @@
             background: var(--accent-red);
         }
 
+        /* Animated progress — blocks start empty, fill on reveal */
+        .card-progress-block.anim-fill {
+            background: var(--border-light);
+            transition: background 0.3s ease-out;
+        }
+        .card-progress-block.anim-fill.filled-in {
+            background: var(--text-primary);
+        }
+
+        /* Data stream line */
+        .data-stream {
+            position: relative;
+            width: 100%;
+            height: 1px;
+            background: var(--border-light);
+            overflow: hidden;
+        }
+        .data-stream-dot {
+            position: absolute;
+            top: 50%;
+            left: -20px;
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, transparent, var(--text-tertiary), transparent);
+            transform: translateY(-50%);
+            animation: stream-travel 4s linear infinite;
+        }
+        .data-stream-dot:nth-child(2) {
+            animation-delay: -1.6s;
+            width: 12px;
+            opacity: 0.6;
+        }
+        .data-stream-dot:nth-child(3) {
+            animation-delay: -2.8s;
+            width: 8px;
+            opacity: 0.4;
+        }
+        @keyframes stream-travel {
+            0% { left: -20px; }
+            100% { left: calc(100% + 20px); }
+        }
+
         .card-footer {
             margin-top: 28px;
             padding-top: 20px;
@@ -814,6 +857,13 @@
             </div>
         </section>
 
+        <!-- Data stream -->
+        <div class="data-stream">
+            <div class="data-stream-dot"></div>
+            <div class="data-stream-dot"></div>
+            <div class="data-stream-dot"></div>
+        </div>
+
         <!-- Project Dossiers -->
         <section class="projects-section reveal">
             <div class="section-label">Project // Story time</div>
@@ -833,9 +883,9 @@
                                     <span class="card-progress-text">Progression</span>
                                     <span class="card-progress-value">20%</span>
                                 </div>
-                                <div class="card-progress-bar">
-                                    <div class="card-progress-block filled filled--active"></div>
-                                    <div class="card-progress-block filled filled--active"></div>
+                                <div class="card-progress-bar" id="squabProgress">
+                                    <div class="card-progress-block anim-fill" data-fill="true"></div>
+                                    <div class="card-progress-block anim-fill" data-fill="true"></div>
                                     <div class="card-progress-block"></div>
                                     <div class="card-progress-block"></div>
                                     <div class="card-progress-block"></div>
@@ -1159,6 +1209,31 @@
 
         // Code content — triggers on scroll into view, 80ms between lines
         typewriterReveal('codeContent', 200, 80);
+
+        // ============================================
+        // Animated progress bar fill
+        // ============================================
+        function animateProgressBar(card) {
+            const blocks = card.querySelectorAll('.anim-fill[data-fill]');
+            // Reset all blocks first
+            blocks.forEach(block => block.classList.remove('filled-in'));
+            // Fill them in with stagger
+            blocks.forEach((block, i) => {
+                setTimeout(() => {
+                    block.classList.add('filled-in');
+                }, 300 + (i * 300));
+            });
+        }
+
+        // Run on initial load for Squab (front card)
+        animateProgressBar(cards[0]);
+
+        // Hook into card cycling — re-animate the new front card each time
+        const origUpdateCards = updateCards;
+        updateCards = function() {
+            origUpdateCards();
+            animateProgressBar(cards[frontIndex]);
+        };
 
         // ============================================
         // Swipe gesture for dossier cards
