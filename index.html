@@ -79,6 +79,8 @@
             --border-light: #E8E8E8;
             --border-medium: #D4D4D4;
             --dot-color: #DEDEDE;
+            --accent-green: #00793C;
+            --accent-red: #CC0017;
 
             --font-sans: 'Geist Variable', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'Geist Mono Variable', 'SF Mono', 'Fira Code', monospace;
@@ -175,15 +177,15 @@
             font-size: 0.7rem;
             letter-spacing: 0.06em;
             text-transform: uppercase;
-            color: var(--text-tertiary);
+            color: var(--accent-green);
         }
         .status-dot {
             width: 6px; height: 6px;
             border-radius: 50%;
-            background: var(--text-primary);
+            background: var(--accent-green);
             animation: pulse-dot 2.5s ease-in-out infinite;
         }
-        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         .header-nav {
             font-family: var(--font-mono);
             font-size: 0.7rem;
@@ -437,6 +439,14 @@
             border: 1px solid var(--border-light);
             border-radius: 3px;
         }
+        .card-classification--active {
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+        .card-classification--inactive {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
         .card-body {
             flex: 1;
             display: flex;
@@ -590,12 +600,19 @@
             align-items: center;
             width: 100%;
         }
-        .footer-left, .footer-right {
+        .footer-left {
             font-family: var(--font-mono);
             font-size: 0.6rem;
             letter-spacing: 0.1em;
             text-transform: uppercase;
             color: var(--text-tertiary);
+        }
+        .footer-right {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent-green);
         }
 
         /* ============================================
@@ -736,7 +753,7 @@
                     <div class="dossier-card card--squab">
                         <div class="card-header">
                             <div class="card-logo">SQ</div>
-                            <span class="card-classification">Active</span>
+                            <span class="card-classification card-classification--active">Active</span>
                         </div>
                         <div class="card-body">
                             <h3 class="card-title">The Squab HQ</h3>
@@ -751,7 +768,7 @@
                     <div class="dossier-card card--oneth">
                         <div class="card-header">
                             <div class="card-logo">01</div>
-                            <span class="card-classification">Inactive</span>
+                            <span class="card-classification card-classification--inactive">Inactive</span>
                         </div>
                         <div class="card-body">
                             <h3 class="card-title">Oneth</h3>
@@ -766,7 +783,7 @@
                     <div class="dossier-card card--sol">
                         <div class="card-header">
                             <div class="card-logo">SOL</div>
-                            <span class="card-classification">Inactive</span>
+                            <span class="card-classification card-classification--inactive">Inactive</span>
                         </div>
                         <div class="card-body">
                             <h3 class="card-title">Sol's Sword</h3>
