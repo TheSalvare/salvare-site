@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chimera Corp — The Salvare</title>
+    <style>
+        /* ============================================
+           FONT FACES
+           ============================================ */
+        @font-face {
+            font-family: 'Geist Variable';
+            font-style: normal;
+            font-display: swap;
+            font-weight: 100 900;
+            src: url(https://cdn.jsdelivr.net/fontsource/fonts/geist:vf@latest/latin-wght-normal.woff2) format('woff2-variations');
+        }
+        @font-face {
+            font-family: 'Geist Mono Variable';
+            font-style: normal;
+            font-display: swap;
+            font-weight: 100 900;
+            src: url(https://cdn.jsdelivr.net/fontsource/fonts/geist-mono:vf@latest/latin-wght-normal.woff2) format('woff2-variations');
+        }
+        @font-face {
+            font-family: 'Geist Pixel Square';
+            font-style: normal;
+            font-display: swap;
+            font-weight: 400;
+            src: url(https://cdn.jsdelivr.net/npm/geist@latest/dist/fonts/geist-pixel-square/GeistPixelSquare-Regular.woff2) format('woff2');
+        }
+
+        /* Per-story fonts — self-hosted
+           Replace src paths with your local font files */
+
+        /* The Squab HQ — Typex by Rian Hughes / Device
+           Upload your Typex .woff2 file and update the path below */
+        @font-face {
+            font-family: 'Typex';
+            font-style: normal;
+            font-display: swap;
+            font-weight: 400;
+            src: url(./fonts/Typex-Regular.woff2) format('woff2');
+        }
+
+        /* Oneth — placeholder for future font */
+        /*
+        @font-face {
+            font-family: 'OnethFont';
+            font-style: normal;
+            font-display: swap;
+            font-weight: 400;
+            src: url(./fonts/OnethFont.woff2) format('woff2');
+        }
+        */
+
+        /* Sol's Sword — placeholder for future font */
+        /*
+        @font-face {
+            font-family: 'SolFont';
+            font-style: normal;
+            font-display: swap;
+            font-weight: 400;
+            src: url(./fonts/SolFont.woff2) format('woff2');
+        }
+        */
+
+        /* ============================================
+           CSS CUSTOM PROPERTIES
+           ============================================ */
+        :root {
+            --bg-primary: #FEFEFE;
+            --bg-secondary: #F8F8F8;
+            --bg-tertiary: #F2F2F2;
+            --bg-card: #FAFAFA;
+            --text-primary: #212121;
+            --text-secondary: #6B6B6B;
+            --text-tertiary: #9A9A9A;
+            --border-light: #E8E8E8;
+            --border-medium: #D4D4D4;
+            --dot-color: #DEDEDE;
+
+            --font-sans: 'Geist Variable', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'Geist Mono Variable', 'SF Mono', 'Fira Code', monospace;
+            --font-pixel: 'Geist Pixel Square', 'Courier New', monospace;
+
+            /* Story-specific fonts */
+            --font-squab: 'Typex', 'Geist Mono Variable', monospace;
+            --font-oneth: var(--font-sans);   /* swap when font is added */
+            --font-sol: var(--font-sans);      /* swap when font is added */
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 16px; scroll-behavior: smooth; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body { font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; overflow-x: hidden; }
+
+        /* ============================================
+           DOT GRID BACKGROUND
+           ============================================ */
+        .dot-grid {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(circle, var(--dot-color) 1px, transparent 1px);
+            background-size: 24px 24px;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        /* ============================================
+           SCANLINE + NOISE TEXTURE OVERLAYS
+           ============================================ */
+        .texture-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.045;
+            mix-blend-mode: multiply;
+            background-image: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(33, 33, 33, 0.15) 2px,
+                rgba(33, 33, 33, 0.15) 3px
+            );
+            background-size: 100% 3px;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.05;
+        }
+
+        /* ============================================
+           MAIN WRAPPER
+           ============================================ */
+        .page-wrapper { position: relative; z-index: 1; min-height: 100vh; }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border-light);
+            background: rgba(254, 254, 254, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-brand {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .header-right { display: flex; align-items: center; gap: 24px; }
+        .header-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+        }
+        .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--text-primary);
+            animation: pulse-dot 2.5s ease-in-out infinite;
+        }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+        .header-nav {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .header-nav:hover { color: var(--text-primary); }
+
+        /* ============================================
+           HERO
+           ============================================ */
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            min-height: calc(100vh - 61px);
+        }
+        .hero-main {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 100px 80px;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        .hero-title {
+            font-family: var(--font-pixel);
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            font-weight: 400;
+            line-height: 1.05;
+            letter-spacing: -0.01em;
+            margin-bottom: 40px;
+        }
+        .hero-subtitle {
+            font-family: var(--font-sans);
+            font-size: 1.08rem;
+            font-weight: 350;
+            line-height: 1.75;
+            color: var(--text-secondary);
+            max-width: 560px;
+        }
+        .hero-meta {
+            margin-top: 56px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .hero-meta-tag {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            padding: 6px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+        }
+        .hero-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--border-light) 20%, var(--border-medium) 50%, var(--border-light) 80%, transparent 100%);
+        }
+        .hero-sidebar {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 48px 28px;
+            border-left: 1px solid var(--border-light);
+            width: 56px;
+        }
+        .sidebar-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+        }
+        .sidebar-cursor {
+            animation: blink-cursor 1s step-end infinite;
+        }
+        .sidebar-arrow {
+            width: 0; height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 7px solid var(--text-tertiary);
+        }
+
+        /* ============================================
+           CLEARANCE STRIP
+           ============================================ */
+        .clearance-strip {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 14px 40px;
+            border-bottom: 1px solid var(--border-light);
+            background: var(--bg-secondary);
+        }
+        .clearance-label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+        }
+        .clearance-light {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--text-primary);
+            animation: blink-light 3s ease-in-out infinite;
+        }
+        @keyframes blink-light {
+            0%, 40%, 100% { opacity: 1; background: var(--text-primary); }
+            42%, 48% { opacity: 0.3; background: var(--text-tertiary); }
+            50% { opacity: 1; background: var(--text-primary); }
+            75%, 78% { opacity: 0.15; background: var(--text-tertiary); }
+        }
+        .clearance-value {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        /* ============================================
+           ABOUT / CODE SECTION
+           ============================================ */
+        .about-section {
+            padding: 80px 56px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-light);
+            max-width: 200px;
+        }
+        .code-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            line-height: 2;
+            color: var(--text-primary);
+            overflow-x: auto;
+            display: flex;
+        }
+        .code-line-numbers {
+            padding: 28px 12px 28px 16px;
+            text-align: right;
+            user-select: none;
+            -webkit-user-select: none;
+            color: var(--border-medium);
+            font-size: 0.68rem;
+            line-height: 2;
+            min-width: 40px;
+            border-right: 1px solid var(--border-light);
+            flex-shrink: 0;
+        }
+        .code-content { padding: 28px 24px; flex: 1; white-space: nowrap; }
+        .code-comment { color: var(--text-tertiary); }
+        .code-key { color: var(--text-secondary); }
+        .code-value { color: var(--text-primary); font-weight: 500; }
+
+        /* ============================================
+           DOSSIER CARDS
+           ============================================ */
+        .projects-section {
+            padding: 80px 56px 120px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 0;
+            min-height: 480px;
+        }
+        .dossier-stack {
+            position: relative;
+            width: 420px;
+            height: 440px;
+        }
+        .dossier-card {
+            position: absolute;
+            width: 420px;
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-medium);
+            border-radius: 14px;
+            padding: 36px 32px 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 420px;
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: default;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .dossier-card:hover {
+            transform: translateY(-4px) !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .card-logo {
+            width: 48px; height: 48px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-pixel);
+            font-size: 0.65rem;
+            color: var(--text-tertiary);
+            letter-spacing: 0.04em;
+        }
+        .card-classification {
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            padding: 4px 8px;
+            border: 1px solid var(--border-light);
+            border-radius: 3px;
+        }
+        .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Default card typography */
+        .card-title {
+            font-family: var(--font-pixel);
+            font-size: 1.75rem;
+            font-weight: 400;
+            line-height: 1.2;
+            margin-bottom: 14px;
+        }
+        .card-description {
+            font-family: var(--font-sans);
+            font-size: 0.88rem;
+            font-weight: 350;
+            line-height: 1.65;
+            color: var(--text-secondary);
+            max-width: 340px;
+        }
+
+        /* Per-story card typography overrides */
+        .card--squab .card-title {
+            font-family: var(--font-squab);
+            font-size: 1.65rem;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+        .card--squab .card-description {
+            font-family: var(--font-squab);
+            font-size: 0.82rem;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+        }
+
+        .card--oneth .card-title {
+            font-family: var(--font-oneth);
+        }
+        .card--oneth .card-description {
+            font-family: var(--font-oneth);
+        }
+
+        .card--sol .card-title {
+            font-family: var(--font-sol);
+        }
+        .card--sol .card-description {
+            font-family: var(--font-sol);
+        }
+
+        .card-footer {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+        }
+        .card-cta {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            letter-spacing: 0.04em;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            transition: gap 0.3s ease, letter-spacing 0.3s ease;
+        }
+        .card-cta:hover { gap: 4px; letter-spacing: 0.06em; }
+        .card-cta:hover .cta-cursor { animation: blink-cursor-fast 0.4s step-end infinite; }
+        .card-cta .cta-cursor { animation: blink-cursor 1s step-end infinite; }
+        .card-cta--inactive { color: var(--text-tertiary); }
+        @keyframes blink-cursor { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        @keyframes blink-cursor-fast { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .cards-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .pagination-indicator {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            letter-spacing: 0.08em;
+        }
+        .pagination-dot {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border-medium);
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pagination-dot.active { background: var(--bg-tertiary); }
+        .pagination-dot-inner { width: 6px; height: 6px; border-radius: 50%; background: var(--text-tertiary); }
+        .pagination-advance {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border-medium);
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .pagination-advance:hover { background: var(--bg-tertiary); }
+        .pagination-advance svg { width: 12px; height: 12px; fill: none; stroke: var(--text-secondary); stroke-width: 2; }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        .footer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 40px 20px;
+            border-top: 1px solid var(--border-light);
+            background: rgba(254, 254, 254, 0.85);
+            backdrop-filter: blur(12px);
+            gap: 16px;
+        }
+        .footer-socials {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .social-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border-light);
+            color: var(--text-tertiary);
+            text-decoration: none;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .social-icon:hover {
+            color: var(--text-primary);
+            border-color: var(--border-medium);
+        }
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .footer-left, .footer-right {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+        }
+
+        /* ============================================
+           ANIMATIONS
+           ============================================ */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .anim-fade-up { opacity: 0; animation: fadeUp 0.8s ease-out forwards; }
+        .anim-delay-1 { animation-delay: 0.1s; }
+        .anim-delay-2 { animation-delay: 0.25s; }
+        .anim-delay-3 { animation-delay: 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .anim-fade { opacity: 0; animation: fadeIn 1s ease-out 0.5s forwards; }
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+        }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .hero { grid-template-columns: 1fr; }
+            .hero-main { padding: 56px 24px 72px; max-width: 100%; }
+            .hero-sidebar { display: none; }
+            .hero-title { font-size: clamp(2.2rem, 10vw, 3.5rem); }
+            .header { padding: 16px 20px; }
+            .about-section, .projects-section { padding: 48px 24px; }
+            .code-block { font-size: 0.65rem; }
+            .code-line-numbers { font-size: 0.58rem; min-width: 32px; padding: 24px 8px 24px 12px; }
+            .code-content { padding: 24px 16px; }
+            .dossier-card { width: 300px; min-height: 360px; padding: 28px 24px 24px; }
+            .card-title { font-size: 1.4rem; }
+            .hero-meta { flex-wrap: wrap; }
+            .footer { padding: 20px 20px 16px; }
+            .footer-bottom { flex-direction: column; gap: 6px; align-items: center; }
+        }
+        @media (max-width: 480px) {
+            .dossier-stack { width: 280px; }
+            .dossier-card { width: 280px; }
+            .code-block { font-size: 0.55rem; }
+            .code-line-numbers { font-size: 0.5rem; min-width: 28px; padding: 20px 6px 20px 10px; }
+            .code-content { padding: 20px 12px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background layers -->
+    <div class="dot-grid"></div>
+    <div class="texture-overlay"></div>
+    <svg style="position:absolute;width:0;height:0;">
+        <filter id="noiseFilter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+            <feColorMatrix type="saturate" values="0"/>
+        </filter>
+    </svg>
+    <div class="noise-overlay" style="filter: url(#noiseFilter);"></div>
+
+    <div class="page-wrapper">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-brand">The Salvare</div>
+            <div class="header-right">
+                <div class="header-status">
+                    <span class="status-dot"></span>
+                    Status: Active
+                </div>
+
+            </div>
+        </header>
+
+        <!-- Hero -->
+        <section class="hero">
+            <div class="hero-main">
+                <h1 class="hero-title anim-fade-up anim-delay-1">make good,<br>things happen.</h1>
+                <p class="hero-subtitle anim-fade-up anim-delay-2">I'm Ben, and I am a creative engineer. Follow the projects and complete your objectives. Your commitment is required.</p>
+                <div class="hero-meta anim-fade-up anim-delay-3">
+                    <span class="hero-meta-tag">PROJECTS_IN_PROGRESS</span>
+                    <span class="hero-meta-tag">OBJECTIVES_INCOMPLETE</span>
+                    <span class="hero-meta-tag">OPERATION_WORLD_DOMINATION</span>
+                </div>
+            </div>
+            <div class="hero-sidebar anim-fade">
+                <span class="sidebar-text">Progress Report<span class="sidebar-cursor">_</span></span>
+                <span class="sidebar-arrow"></span>
+            </div>
+        </section>
+
+        <div class="hero-divider"></div>
+
+        <!-- Clearance Strip -->
+        <div class="clearance-strip">
+            <span class="clearance-label">Clearance level</span>
+            <span class="clearance-light"></span>
+            <span class="clearance-value">Public</span>
+        </div>
+
+        <!-- Code Section -->
+        <section class="about-section reveal">
+            <div class="section-label">Report // Chimera Corp</div>
+            <div class="code-block">
+                <div class="code-line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21</div>
+                <div class="code-content">
+                    <span class="code-comment">// chimera.config</span><br>
+                    <br>
+                    <span class="code-key">organisation</span>: <span class="code-value">"Chimera Corp"</span><br>
+                    <span class="code-key">operative</span>: <span class="code-value">"The Salvare"</span><br>
+                    <span class="code-key">projects</span>: <span class="code-value">"Optimizing"</span><br>
+                    <span class="code-key">clearance</span>: <span class="code-value">"Public"</span><br>
+                    <br>
+                    <span class="code-key">operative</span>: [<br>
+                    &nbsp;&nbsp;{ <span class="code-key">id</span>: <span class="code-value">"ILLUSTRATION"</span>, <span class="code-key">status</span>: <span class="code-value">"Toons"</span> },<br>
+                    &nbsp;&nbsp;{ <span class="code-key">id</span>: <span class="code-value">"WRITTING"</span>, <span class="code-key">status</span>: <span class="code-value">"Legible"</span> },<br>
+                    &nbsp;&nbsp;{ <span class="code-key">id</span>: <span class="code-value">"ENGINEERING"</span>, <span class="code-key">status</span>: <span class="code-value">"Front-end"</span> },<br>
+                    &nbsp;&nbsp;{ <span class="code-key">id</span>: <span class="code-value">"DESIGN"</span>, <span class="code-key">status</span>: <span class="code-value">"Products"</span> },<br>
+                    ]<br>
+                    <br>
+                    <span class="code-key">projects</span>: [<br>
+                    &nbsp;&nbsp;{ <span class="code-key">id</span>: <span class="code-value">"SQUAB-001"</span>, <span class="code-key">status</span>: <span class="code-value">"Active"</span> },<br>
+                    &nbsp;&nbsp;{ <span class="code-key">id</span>: <span class="code-value">"ONETH-002"</span>, <span class="code-key">status</span>: <span class="code-value">"Classified"</span> },<br>
+                    &nbsp;&nbsp;{ <span class="code-key">id</span>: <span class="code-value">"SOL-003"</span>, <span class="code-key">status</span>: <span class="code-value">"Classified"</span> },<br>
+                    ]<br>
+                    <span class="code-comment">// Objective: Engage. Discover. Report.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Project Dossiers -->
+        <section class="projects-section reveal">
+            <div class="section-label">Project // Story time</div>
+            <div class="cards-container">
+                <div class="dossier-stack">
+                    <!-- The Squab HQ — Page 1 -->
+                    <div class="dossier-card card--squab">
+                        <div class="card-header">
+                            <div class="card-logo">SQ</div>
+                            <span class="card-classification">Active</span>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">The Squab HQ</h3>
+                            <p class="card-description">A comedic spy thriller. Unlikely operatives. Hidden agendas. Complete the aptitude assessment and prove your worth to the agency.</p>
+                        </div>
+                        <div class="card-footer">
+                            <a href="#" class="card-cta">&gt; Begin your objective<span class="cta-cursor"> _</span></a>
+                        </div>
+                    </div>
+
+                    <!-- Oneth — Page 2 -->
+                    <div class="dossier-card card--oneth">
+                        <div class="card-header">
+                            <div class="card-logo">01</div>
+                            <span class="card-classification">Inactive</span>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">Oneth</h3>
+                            <p class="card-description">Data restricted. Clearance required.</p>
+                        </div>
+                        <div class="card-footer">
+                            <span class="card-cta card-cta--inactive">&gt; Objectives classified<span class="cta-cursor"> _</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Sol's Sword — Page 3 -->
+                    <div class="dossier-card card--sol">
+                        <div class="card-header">
+                            <div class="card-logo">SOL</div>
+                            <span class="card-classification">Inactive</span>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="card-title">Sol's Sword</h3>
+                            <p class="card-description">Data restricted. Clearance required.</p>
+                        </div>
+                        <div class="card-footer">
+                            <span class="card-cta card-cta--inactive">&gt; Objectives classified<span class="cta-cursor"> _</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="cards-pagination">
+                <div class="pagination-dot active"><span class="pagination-dot-inner"></span></div>
+                <span class="pagination-indicator">1 / 3</span>
+                <div class="pagination-advance">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="13 17 18 12 13 7"></polyline>
+                        <polyline points="6 17 11 12 6 7"></polyline>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-socials">
+                <a href="#" class="social-icon" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                    </svg>
+                </a>
+                <a href="#" class="social-icon" aria-label="X (Twitter)" target="_blank" rel="noopener noreferrer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                </a>
+                <a href="#" class="social-icon" aria-label="TikTok" target="_blank" rel="noopener noreferrer">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1v-3.5a6.37 6.37 0 0 0-.79-.05A6.34 6.34 0 0 0 3.15 15a6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.34-6.34V8.72a8.2 8.2 0 0 0 4.76 1.52V6.79a4.84 4.84 0 0 1-1-.1z"/>
+                    </svg>
+                </a>
+            </div>
+            <div class="footer-bottom">
+                <span class="footer-left">&copy; Chimera Corp // The Salvare</span>
+                <span class="footer-right">All systems operational</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Scroll reveal
+        const reveals = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+        reveals.forEach(el => observer.observe(el));
+
+        // Card cycling — Squab (0) = page 1, Oneth (1) = page 2, Sol (2) = page 3
+        const cards = document.querySelectorAll('.dossier-card');
+        const pageIndicator = document.querySelector('.pagination-indicator');
+        const advanceBtn = document.querySelector('.pagination-advance');
+        const total = cards.length;
+        let frontIndex = 0; // which card is at the front
+
+        const posStyles = [
+            // front (sharp, no blur)
+            { transform: 'translateX(0) translateY(0) rotate(0deg)', filter: 'blur(0)', opacity: '1', zIndex: 3 },
+            // one behind
+            { transform: 'translateX(12px) translateY(8px) rotate(1deg)', filter: 'blur(1.2px)', opacity: '0.6', zIndex: 2 },
+            // two behind
+            { transform: 'translateX(24px) translateY(16px) rotate(2deg)', filter: 'blur(2.5px)', opacity: '0.4', zIndex: 1 }
+        ];
+
+        function updateCards() {
+            cards.forEach((card, i) => {
+                const depth = (i - frontIndex + total) % total;
+                const pos = posStyles[depth];
+                card.style.transform = pos.transform;
+                card.style.filter = pos.filter;
+                card.style.opacity = pos.opacity;
+                card.style.zIndex = pos.zIndex;
+                card.style.pointerEvents = depth === 0 ? 'auto' : 'none';
+            });
+            pageIndicator.textContent = `${frontIndex + 1} / ${total}`;
+        }
+
+        advanceBtn.addEventListener('click', () => {
+            frontIndex = (frontIndex + 1) % total;
+            updateCards();
+        });
+
+        updateCards();
+    </script>
+</body>
+</html>
