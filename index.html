@@ -98,40 +98,128 @@
         /* Dot grid is now rendered via canvas */
 
         /* ============================================
-           AMBIENT GRADIENT
+           TRANSITION TEXT LINES
            ============================================ */
-        .ambient-gradient {
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            pointer-events: none;
-            z-index: -1;
-            opacity: 0.35;
-            background:
-                radial-gradient(ellipse at 20% 50%, rgba(200, 220, 240, 0.5) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 20%, rgba(230, 210, 200, 0.4) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 80%, rgba(200, 230, 210, 0.4) 0%, transparent 50%);
-            animation: gradient-drift 30s ease-in-out infinite alternate;
+        .transition-text {
+            padding: 32px 56px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .transition-text span {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.08em;
+            color: var(--text-tertiary);
+        }
+        .transition-text .blink {
+            animation: blink-cursor 1s step-end infinite;
         }
 
-        @keyframes gradient-drift {
-            0% {
-                transform: translate(0%, 0%) rotate(0deg);
-            }
-            25% {
-                transform: translate(5%, -3%) rotate(2deg);
-            }
-            50% {
-                transform: translate(-3%, 5%) rotate(-1deg);
-            }
-            75% {
-                transform: translate(-5%, -2%) rotate(1.5deg);
-            }
-            100% {
-                transform: translate(3%, 4%) rotate(-2deg);
-            }
+        /* ============================================
+           TERMINAL EMAIL SIGNUP
+           ============================================ */
+        .terminal-signup {
+            padding: 60px 56px 40px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .terminal-signup-label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .terminal-signup-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-light);
+            max-width: 200px;
+        }
+        .terminal-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 0;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .terminal-input-wrapper:focus-within {
+            border-color: var(--border-medium);
+        }
+        .terminal-prompt {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--text-tertiary);
+            padding: 14px 0 14px 18px;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        .terminal-input {
+            flex: 1;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--text-primary);
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 14px 12px;
+            letter-spacing: 0.02em;
+        }
+        .terminal-input::placeholder {
+            color: var(--text-tertiary);
+            opacity: 0.6;
+        }
+        .terminal-submit {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            background: transparent;
+            border: none;
+            border-left: 1px solid var(--border-light);
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: color 0.2s, background 0.2s;
+            flex-shrink: 0;
+        }
+        .terminal-submit:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+        .terminal-response {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--accent-green);
+            margin-top: 12px;
+            opacity: 0;
+            transition: opacity 0.4s ease-out;
+            letter-spacing: 0.04em;
+        }
+        .terminal-response.visible {
+            opacity: 1;
+        }
+
+        /* ============================================
+           END TRANSMISSION
+           ============================================ */
+        .end-transmission {
+            text-align: center;
+            padding: 48px 40px 24px;
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
         }
 
         /* ============================================
@@ -788,6 +876,9 @@
             .hero-title { font-size: clamp(2.2rem, 10vw, 3.5rem); }
             .header { padding: 16px 20px; }
             .about-section, .projects-section { padding: 48px 24px; }
+            .transition-text { padding: 24px 24px; }
+            .terminal-signup { padding: 40px 24px 32px; }
+            .terminal-submit { padding: 14px 14px; }
             .code-block { font-size: 0.65rem; }
             .code-line-numbers { font-size: 0.58rem; min-width: 32px; padding: 24px 8px 24px 12px; }
             .code-content { padding: 24px 16px; }
@@ -814,8 +905,6 @@
 </head>
 <body>
     <!-- Background layers -->
-    <!-- Ambient gradient -->
-    <div class="ambient-gradient"></div>
     <!-- Interactive dot grid canvas -->
     <canvas id="dotGrid" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;"></canvas>
     <div class="texture-overlay"></div>
@@ -870,7 +959,7 @@
         <section class="about-section reveal">
             <div class="section-label">Report // Chimera Corp</div>
             <div class="code-block">
-                <div class="code-line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21</div>
+                <div class="code-line-numbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15<br>16<br>17<br>18<br>19<br>20<br>21<br>22<br>23<br>24<br>25</div>
                 <div class="code-content" id="codeContent">
                     <span class="typewriter-line"><span class="code-comment">// chimera.config</span></span><br>
                     <br>
@@ -891,7 +980,9 @@
                     <span class="typewriter-line">&nbsp;&nbsp;{ <span class="code-key">id</span>: <span class="code-value">"ENCRYPTED"</span>, <span class="code-key">status</span>: <span class="code-value">"Classified"</span> },</span><br>
                     <span class="typewriter-line">&nbsp;&nbsp;{ <span class="code-key">id</span>: <span class="code-value">"ENCRYPTED"</span>, <span class="code-key">status</span>: <span class="code-value">"Classified"</span> },</span><br>
                     <span class="typewriter-line">]</span><br>
-                    <span class="typewriter-line"><span class="code-comment">// Objective: Engage. Discover. Report.</span></span>
+                    <span class="typewriter-line"><span class="code-comment">// Objective: Engage. Discover. Report.</span></span><br>
+                    <br>
+                    <span class="typewriter-line"><span class="code-comment">// Retrieving project dossiers...</span></span>
                 </div>
             </div>
         </section>
@@ -1012,6 +1103,20 @@
                 </div>
             </div>
         </section>
+
+        <!-- Terminal email signup -->
+        <section class="terminal-signup reveal">
+            <div class="terminal-signup-label">Transmissions</div>
+            <div class="terminal-input-wrapper">
+                <span class="terminal-prompt">&gt;</span>
+                <input type="email" class="terminal-input" id="terminalEmail" placeholder="Enter electronic mail to receive transmissions" autocomplete="email">
+                <button class="terminal-submit" id="terminalSubmit">Transmit</button>
+            </div>
+            <div class="terminal-response" id="terminalResponse">// Signal received. Electronic mail locked. Stand by for transmissions.</div>
+        </section>
+
+        <!-- End transmission -->
+        <div class="end-transmission">// End of transmission. Stay connected.</div>
 
         <!-- Footer -->
         <footer class="footer">
@@ -1260,10 +1365,16 @@
         // Run on initial load for Squab (front card)
         animateProgressBar(cards[0]);
 
-        // Hook into card cycling — re-animate the new front card each time
+        // Also trigger on card cycle — re-animate the new front card each time
         const origUpdateCards = updateCards;
         updateCards = function() {
+            // Reset all progress bars before repositioning
+            cards.forEach(card => {
+                const blocks = card.querySelectorAll('.anim-fill[data-fill]');
+                blocks.forEach(block => block.classList.remove('filled-in'));
+            });
             origUpdateCards();
+            // Animate only the new front card
             animateProgressBar(cards[frontIndex]);
         };
 
@@ -1297,6 +1408,37 @@
                 updateCards();
             }
         }, { passive: true });
+
+        // ============================================
+        // Terminal email signup
+        // ============================================
+        const terminalSubmit = document.getElementById('terminalSubmit');
+        const terminalEmail = document.getElementById('terminalEmail');
+        const terminalResponse = document.getElementById('terminalResponse');
+
+        terminalSubmit.addEventListener('click', () => {
+            const email = terminalEmail.value.trim();
+            if (email && email.includes('@')) {
+                terminalResponse.textContent = '// Signal received. Electronic mail locked. Stand by for transmissions.';
+                terminalResponse.classList.add('visible');
+                terminalEmail.value = '';
+                terminalEmail.disabled = true;
+                terminalSubmit.disabled = true;
+                terminalSubmit.style.opacity = '0.4';
+            } else {
+                terminalResponse.textContent = '// Error: Invalid frequency. Please re-enter.';
+                terminalResponse.style.color = 'var(--accent-red)';
+                terminalResponse.classList.add('visible');
+                setTimeout(() => {
+                    terminalResponse.classList.remove('visible');
+                    terminalResponse.style.color = '';
+                }, 2500);
+            }
+        });
+
+        terminalEmail.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') terminalSubmit.click();
+        });
     </script>
 </body>
 </html>
