@@ -913,6 +913,25 @@
         let mouse = { x: -9999, y: -9999 };
         let smoothMouse = { x: -9999, y: -9999 };
 
+        // Random square pulse system
+        const pulsingDots = new Map(); // key: "col,row" -> { progress, speed, size }
+        const maxPulsing = 12;
+        const pulseChance = 0.003; // chance per frame to spawn a new pulse
+
+        function spawnPulse(cols, rows) {
+            if (pulsingDots.size >= maxPulsing) return;
+            const col = Math.floor(Math.random() * cols);
+            const row = Math.floor(Math.random() * rows);
+            const key = `${col},${row}`;
+            if (!pulsingDots.has(key)) {
+                pulsingDots.set(key, {
+                    progress: 0,
+                    speed: 0.008 + Math.random() * 0.012, // varies how fast each one pulses
+                    size: 1.5 + Math.random() * 2 // varies the square size
+                });
+            }
+        }
+
         function resize() {
             const dpr = window.devicePixelRatio || 1;
             canvas.width = window.innerWidth * dpr;
@@ -923,7 +942,6 @@
         }
 
         function draw() {
-            // Smooth interpolation toward actual mouse position
             const lerp = 0.08;
             smoothMouse.x += (mouse.x - smoothMouse.x) * lerp;
             smoothMouse.y += (mouse.y - smoothMouse.y) * lerp;
@@ -934,6 +952,19 @@
 
             const cols = Math.ceil(w / spacing) + 1;
             const rows = Math.ceil(h / spacing) + 1;
+
+            // Randomly spawn new pulses
+            if (Math.random() < pulseChance) {
+                spawnPulse(cols, rows);
+            }
+
+            // Update pulse progress and remove finished ones
+            for (const [key, pulse] of pulsingDots) {
+                pulse.progress += pulse.speed;
+                if (pulse.progress >= 1) {
+                    pulsingDots.delete(key);
+                }
+            }
 
             for (let row = 0; row < rows; row++) {
                 for (let col = 0; col < cols; col++) {
@@ -953,10 +984,39 @@
                         alpha = baseAlpha + (0.15) * ease;
                     }
 
-                    ctx.beginPath();
-                    ctx.arc(x, y, radius, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(${dotColor[0]}, ${dotColor[1]}, ${dotColor[2]}, ${alpha})`;
-                    ctx.fill();
+                    const key = `${col},${row}`;
+                    const pulse = pulsingDots.get(key);
+
+                    if (pulse) {
+                        // Smooth bell curve: 0 -> 1 -> 0
+                        const t = pulse.progress;
+                        const blend = Math.sin(t * Math.PI);
+                        const sqSize = pulse.size * blend;
+                        const sqAlpha = baseAlpha + 0.25 * blend;
+
+                        // Draw square (rotated 45deg at peak for extra life)
+                        const rotation = blend * 0.15;
+                        ctx.save();
+                        ctx.translate(x, y);
+                        ctx.rotate(rotation);
+                        ctx.fillStyle = `rgba(${dotColor[0]}, ${dotColor[1]}, ${dotColor[2]}, ${sqAlpha})`;
+                        ctx.fillRect(-sqSize / 2, -sqSize / 2, sqSize, sqSize);
+                        ctx.restore();
+
+                        // Also draw the base dot fading out as the square fades in
+                        const dotBlend = 1 - blend;
+                        if (dotBlend > 0.01) {
+                            ctx.beginPath();
+                            ctx.arc(x, y, radius, 0, Math.PI * 2);
+                            ctx.fillStyle = `rgba(${dotColor[0]}, ${dotColor[1]}, ${dotColor[2]}, ${alpha * dotBlend})`;
+                            ctx.fill();
+                        }
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(x, y, radius, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(${dotColor[0]}, ${dotColor[1]}, ${dotColor[2]}, ${alpha})`;
+                        ctx.fill();
+                    }
                 }
             }
             requestAnimationFrame(draw);
@@ -1009,13 +1069,11 @@
         typewriterReveal('codeContent', 200, 80);
 
         // ============================================
-        // Drag swipe for dossier cards
+        // Swipe gesture for dossier cards
         // ============================================
         const cardStack = document.querySelector('.dossier-stack');
         let touchStartX = 0;
         let touchStartY = 0;
-        let touchCurrentX = 0;
-        let isDragging = false;
         const swipeThreshold = 50;
 
         cardStack.style.touchAction = 'pan-y';
@@ -1023,66 +1081,22 @@
         cardStack.addEventListener('touchstart', (e) => {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
-            touchCurrentX = touchStartX;
-            isDragging = false;
-            // Kill transition on front card so it tracks finger instantly
-            cards[frontIndex].style.transition = 'none';
-        }, { passive: true });
-
-        cardStack.addEventListener('touchmove', (e) => {
-            touchCurrentX = e.touches[0].clientX;
-            const deltaX = touchCurrentX - touchStartX;
-            const deltaY = e.touches[0].clientY - touchStartY;
-
-            if (!isDragging && Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) {
-                isDragging = true;
-            }
-
-            if (isDragging) {
-                const front = cards[frontIndex];
-                const rotate = deltaX * 0.02;
-                front.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg)`;
-            }
         }, { passive: true });
 
         cardStack.addEventListener('touchend', (e) => {
-            const deltaX = touchCurrentX - touchStartX;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
 
-            // Restore transition on front card
-            cards[frontIndex].style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-
-            if (isDragging && Math.abs(deltaX) > swipeThreshold) {
-                // Animate the front card off-screen before cycling
-                const front = cards[frontIndex];
-                const direction = deltaX < 0 ? -1 : 1;
-                front.style.transform = `translateX(${direction * 300}px) rotate(${direction * 8}deg)`;
-                front.style.opacity = '0';
-
-                // After animation, cycle and reset
-                setTimeout(() => {
-                    if (deltaX < 0) {
-                        frontIndex = (frontIndex + 1) % total;
-                    } else {
-                        frontIndex = (frontIndex - 1 + total) % total;
-                    }
-                    // Reset all transitions and positions
-                    cards.forEach(c => c.style.transition = 'none');
-                    updateCards();
-                    // Re-enable transitions after a frame
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                            cards.forEach(c => {
-                                c.style.transition = 'all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-                            });
-                        });
-                    });
-                }, 300);
-            } else {
-                // Snap back to position
+            if (Math.abs(deltaX) > swipeThreshold && Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX < 0) {
+                    frontIndex = (frontIndex + 1) % total;
+                } else {
+                    frontIndex = (frontIndex - 1 + total) % total;
+                }
                 updateCards();
             }
-
-            isDragging = false;
         }, { passive: true });
     </script>
 </body>
