@@ -42,7 +42,7 @@
             font-style: normal;
             font-display: swap;
             font-weight: 400;
-            src: url(./fonts/Typex-Regular.otf) format('otf');
+            src: url(./fonts/Typex-Regular.otf) format('opentype');
         }
 
         /* Oneth — Russo One via Google Fonts
@@ -680,40 +680,6 @@
         }
         .card-progress-block.anim-fill.filled-in {
             background: var(--text-primary);
-        }
-
-        /* Data stream line */
-        .data-stream {
-            position: relative;
-            width: 100%;
-            height: 1px;
-            background: var(--border-light);
-            overflow: hidden;
-        }
-        .data-stream-dot {
-            position: absolute;
-            top: 50%;
-            left: -20px;
-            width: 20px;
-            height: 3px;
-            border-radius: 2px;
-            background: linear-gradient(90deg, transparent, var(--text-tertiary), transparent);
-            transform: translateY(-50%);
-            animation: stream-travel 4s linear infinite;
-        }
-        .data-stream-dot:nth-child(2) {
-            animation-delay: -1.6s;
-            width: 12px;
-            opacity: 0.6;
-        }
-        .data-stream-dot:nth-child(3) {
-            animation-delay: -2.8s;
-            width: 8px;
-            opacity: 0.4;
-        }
-        @keyframes stream-travel {
-            0% { left: -20px; }
-            100% { left: calc(100% + 20px); }
         }
 
         .card-footer {
